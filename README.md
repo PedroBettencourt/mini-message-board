@@ -1,0 +1,1 @@
+The app is deployed at https://vocational-elle-pedrobettencourt-c5a09d33.koyeb.app/
