@@ -1,32 +1,20 @@
-const { randomUUID } = require('crypto');
 const express = require('express');
 const path = require('path');
-const cypto = require('crypto');
+const db = require('./db/queries');
+const { text } = require('stream/consumers');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-const messages = [
-  {
-    id: crypto.randomUUID(),
-    text: "Hi there!",
-    user: "Amando",
-    added: new Date()
-  },
-  {
-    id: crypto.randomUUID(),
-    text: "Hello World!",
-    user: "Charles",
-    added: new Date()
-  }
-];
 
 // INDEX
 const index = express.Router();
 
-index.get("/", (req, res) => {
+index.get("/", async(req, res) => {
+    const messages = await db.getAllMessages();
+    console.log(messages);
     res.render("index", { title: "Mini Messageboard", messages: messages });
 });
 
@@ -39,9 +27,9 @@ newform.get("/", (req, res) => {
 });
 
 newform.use(express.urlencoded({ extended: true }));
-newform.post("/", (req, res) => {
-    const message = {id: crypto.randomUUID(), text: req.body.message, user: req.body.name, added: new Date()};
-    messages.push(message);
+newform.post("/", async(req, res) => {
+    const { text, username } = {text: req.body.message, username: req.body.username};
+    await db.insertMessage(text, username);
     res.redirect("/");
 });
 
@@ -52,9 +40,10 @@ app.use("/new", newform);
 
 
 // PAGE
-app.get("/:id", (req, res) => {
+app.get("/:id", async(req, res) => {
     const id = req.params.id;
-    const message = messages.find(item => item.id === id);
+    const message = await db.getMessage(id);
+    console.log(message);
     res.render("message", {message: message})
 })
 
